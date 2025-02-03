@@ -56,7 +56,7 @@ public class TraineeService extends UserService {
     public void update(Trainee trainee) {
         try {
             traineeDao.update(trainee);
-            logger.info("Trainee updated");
+            logger.info("Trainee {} updated", trainee.getUsername());
         } catch (OutdatedUsernameException e) {
             logger.error(e.getMessage());
 
@@ -69,7 +69,7 @@ public class TraineeService extends UserService {
 
     public void delete(Trainee trainee) {
         traineeDao.delete(trainee);
-        logger.info("Trainee deleted");
+        logger.info("Trainee {} deleted", trainee.getUsername());
     }
 
     public Trainee select(String username) {

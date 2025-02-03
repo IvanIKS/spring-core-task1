@@ -57,7 +57,7 @@ public class TrainerService extends UserService {
     public void update(Trainer trainer) {
         try {
             trainerDao.update(trainer);
-            logger.info("Trainer updated");
+            logger.info("Trainer {} updated", trainer.getUsername());
         } catch (OutdatedUsernameException e) {
             logger.error(e.getMessage());
 
