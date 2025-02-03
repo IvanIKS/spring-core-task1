@@ -8,6 +8,7 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Repository;
 
@@ -20,9 +21,8 @@ import java.util.stream.Collectors;
 
 @Repository("trainerStorage")
 public class TrainerStorage implements Storage<Trainer> {
+    private static final String FILE_PATH = "trainers.json";
 
-    @Value("${storage.trainer.file}")
-    private Resource trainersFile;
 
     private final Map<String, Trainer> trainers = new HashMap<String, Trainer>();
 
@@ -36,16 +36,25 @@ public class TrainerStorage implements Storage<Trainer> {
     @Override
     @PostConstruct
     public void init() {
-        if (false) {
-            logger.info("Loading trainers from file");
-            try (InputStream inputStream = trainersFile.getInputStream()) {
-                List<Trainer> trainers = objectMapper.readValue(inputStream, new TypeReference<>() {
-                });
-                for (Trainer trainer : trainers) {
-                    update(trainer);
+        if (LOADING_FROM_FILE) {
+            try {
+                logger.info("Loading trainees from resources: " + FILE_PATH);
+
+                // Створюємо ресурс із підставленим значенням
+                Resource resource = new ClassPathResource(FILE_PATH);
+                if (!resource.exists()) {
+                    throw new RuntimeException("File not found in resources: " + FILE_PATH);
+                }
+
+                try (InputStream inputStream = resource.getInputStream()) {
+                    List<Trainer> trainers = objectMapper.readValue(inputStream, new TypeReference<>() {
+                    });
+                    for (Trainer trainee : trainers) {
+                        update(trainee);
+                    }
                 }
             } catch (IOException e) {
-                throw new RuntimeException("Failed to load trainers from file", e);
+                throw new RuntimeException("Failed to load trainers from file: " + FILE_PATH, e);
             }
         }
     }

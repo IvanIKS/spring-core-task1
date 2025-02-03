@@ -1,26 +1,26 @@
 [
     {
-      "firstName": "John",
-      "lastName": "Doe",
-      "username": "John.Doe",
+      "firstName": "Timur",
+      "lastName": "Makarov",
+      "username": "Timur.Makarov",
       "password": "secure123",
       "active": true,
       "specialization": "Yoga",
       "userId": "trainer001"
     },
     {
-      "firstName": "Alice",
-      "lastName": "Smith",
-      "username": "Alice.Smith",
+      "firstName": "Alisa",
+      "lastName": "Koval",
+      "username": "Alisa.Koval",
       "password": "pass456",
       "active": true,
       "specialization": "Pilates",
       "userId": "trainer002"
     },
     {
-      "firstName": "Robert",
-      "lastName": "Brown",
-      "username": "Robert.Brown",
+      "firstName": "Maksym",
+      "lastName": "Chorny",
+      "username": "Maksym.Chorny",
       "password": "train789",
       "active": false,
       "specialization": "Weightlifting",

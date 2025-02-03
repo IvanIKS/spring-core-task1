@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.event.annotation.BeforeTestClass;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.ArrayList;
@@ -49,6 +50,11 @@ public class TraineeServiceTest {
 
     @Autowired
     private TraineeStorage traineeStorage;
+
+    @BeforeTestClass
+    void init() {
+        traineeStorage.cleanAll();
+    }
 
     @AfterEach
     void tearDown() {

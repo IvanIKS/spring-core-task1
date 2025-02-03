@@ -1,11 +1,13 @@
 package com.example.springcrm.storage;
 
+import com.example.springcrm.model.Trainee;
 import com.example.springcrm.model.Training;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Repository;
 
@@ -17,8 +19,8 @@ import java.util.Map;
 
 @Repository("trainingStorage")
 public class TrainingStorage implements Storage<Training> {
-    @Value("${storage.training.file}")
-    private Resource trainingFile;
+    private static final String FILE_PATH = "trainings.json";
+
 
     private final Map<String, Training> trainings = new HashMap<String, Training>();
 
@@ -31,16 +33,25 @@ public class TrainingStorage implements Storage<Training> {
 
     @Override
     public void init() {
-        if (false) {
-            try (InputStream inputStream = trainingFile.getInputStream()) {
-                logger.info("Loading trainings from file");
-                List<Training> trainings = objectMapper.readValue(inputStream, new TypeReference<>() {
-                });
-                for (Training training : trainings) {
-                    update(training);
+        if (LOADING_FROM_FILE) {
+            try {
+                logger.info("Loading trainings from resources: " + FILE_PATH);
+
+                // Створюємо ресурс із підставленим значенням
+                Resource resource = new ClassPathResource(FILE_PATH);
+                if (!resource.exists()) {
+                    throw new RuntimeException("File not found in resources: " + FILE_PATH);
+                }
+
+                try (InputStream inputStream = resource.getInputStream()) {
+                    List<Training> trainings = objectMapper.readValue(inputStream, new TypeReference<>() {
+                    });
+                    for (Training training : trainings) {
+                        update(training);
+                    }
                 }
             } catch (IOException e) {
-                throw new RuntimeException("Failed to load trainees from file", e);
+                throw new RuntimeException("Failed to load trainees from file: " + FILE_PATH, e);
             }
         }
     }
