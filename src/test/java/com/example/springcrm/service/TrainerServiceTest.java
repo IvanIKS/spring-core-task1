@@ -136,6 +136,7 @@ public class TrainerServiceTest {
 
         Trainer selected = trainerService.select(trainer.getUsername());
         assertEquals(trainer, selected);
+        assertEquals("Vitaly", selected.getFirstName());
         assertEquals("Vitaly.Ivanenko", selected.getUsername());
     }
 

@@ -1,0 +1,32 @@
+[
+    {
+      "firstName": "Michael",
+      "lastName": "Johnson",
+      "username": "Michael.Johnson",
+      "password": "mjpass",
+      "active": true,
+      "dateOfBirth": "1995-06-15",
+      "address": "123 Main St.",
+      "userId": "trainee001"
+    },
+    {
+      "firstName": "Emma",
+      "lastName": "Wilson",
+      "username": "Emma.Wilson",
+      "password": "emma123",
+      "active": true,
+      "dateOfBirth": "1998-09-21",
+      "address": "456 Elm St.",
+      "userId": "trainee002"
+    },
+    {
+      "firstName": "Sophia",
+      "lastName": "Davis",
+      "username": "Sophia.Davis",
+      "password": "sophiapass",
+      "active": false,
+      "dateOfBirth": "2000-11-03",
+      "address": "789 Oak St.",
+      "userId": "trainee003"
+    }
+  ]

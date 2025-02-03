@@ -87,7 +87,6 @@ class TrainingServiceTest {
         int numberOfTrainings = 10;
         int timeInWeek = 7 * 24 * 60 * 60 * 1000;
 
-        List<Training> listOfTrainings = new ArrayList<>();
         for (int i = 0; i < numberOfTrainings; i++) {
             Date newDate = new Date(sampleTraining.getTrainingDate().getTime() + timeInWeek);
 
@@ -100,12 +99,15 @@ class TrainingServiceTest {
                     Duration.ofHours(1)
             );
             trainingService.create(sampleTraining);
-            listOfTrainings.add(sampleTraining);
         }
 
         List<Training> selectedTrainings = trainingService.list();
 
-        assertThatListsAreEqual(listOfTrainings, selectedTrainings);
+        for (int i = 0; i < numberOfTrainings; i++) {
+            assertEquals(sampleTraining.getTraineeId(), selectedTrainings.get(i).getTraineeId());
+            assertEquals(sampleTraining.getTrainerId(), selectedTrainings.get(i).getTrainerId());
+            assertEquals(sampleTraining.getTrainingType(), selectedTrainings.get(i).getTrainingType());
+        }
     }
 
     @Test

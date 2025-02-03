@@ -1,0 +1,29 @@
+[
+    {
+      "firstName": "John",
+      "lastName": "Doe",
+      "username": "John.Doe",
+      "password": "secure123",
+      "active": true,
+      "specialization": "Yoga",
+      "userId": "trainer001"
+    },
+    {
+      "firstName": "Alice",
+      "lastName": "Smith",
+      "username": "Alice.Smith",
+      "password": "pass456",
+      "active": true,
+      "specialization": "Pilates",
+      "userId": "trainer002"
+    },
+    {
+      "firstName": "Robert",
+      "lastName": "Brown",
+      "username": "Robert.Brown",
+      "password": "train789",
+      "active": false,
+      "specialization": "Weightlifting",
+      "userId": "trainer003"
+    }
+  ]

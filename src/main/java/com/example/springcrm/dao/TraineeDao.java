@@ -42,7 +42,11 @@ public class TraineeDao implements Dao<Trainee> {
         Trainee oldVersion = storage.get(trainee);
 
         if (oldVersion != null && userNameHasChanged(oldVersion, trainee)) {
-            throw new OutdatedUsernameException("Trainee name has been updated and its username should be changed");
+            throw new OutdatedUsernameException(String.format(
+                    "Trainee name %s %s has been updated to %s %s and its username should be changed",
+                    oldVersion.getFirstName(), oldVersion.getLastName(),
+                    trainee.getFirstName(), trainee.getLastName()
+            ));
         }
 
         storage.update(trainee);

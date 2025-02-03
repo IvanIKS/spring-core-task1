@@ -7,6 +7,7 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Repository;
 
@@ -18,8 +19,7 @@ import java.util.Map;
 
 @Repository("traineeStorage")
 public class TraineeStorage implements Storage<Trainee> {
-    @Value("${storage.trainee.file}")
-    private Resource traineesFile;
+    private static final String FILE_PATH = "trainees.json";
 
     private final Map<String, Trainee> trainees = new HashMap<String, Trainee>();
 
@@ -35,17 +35,27 @@ public class TraineeStorage implements Storage<Trainee> {
     @PostConstruct
     public void init() {
         if (LOADING_FROM_FILE) {
-            logger.info("Loading trainees from file");
-            try (InputStream inputStream = traineesFile.getInputStream()) {
-                List<Trainee> trainees = objectMapper.readValue(inputStream, new TypeReference<>() {
-                });
-                for (Trainee trainee : trainees) {
-                    update(trainee);
+            try {
+                logger.info("Loading trainees from resources: " + FILE_PATH);
+
+                // Створюємо ресурс із підставленим значенням
+                Resource resource = new ClassPathResource(FILE_PATH);
+                if (!resource.exists()) {
+                    throw new RuntimeException("File not found in resources: " + FILE_PATH);
+                }
+
+                try (InputStream inputStream = resource.getInputStream()) {
+                    List<Trainee> trainees = objectMapper.readValue(inputStream, new TypeReference<>() {
+                    });
+                    for (Trainee trainee : trainees) {
+                        update(trainee);
+                    }
                 }
             } catch (IOException e) {
-                throw new RuntimeException("Failed to load trainees from file", e);
+                throw new RuntimeException("Failed to load trainees from file: " + FILE_PATH, e);
             }
         }
+
     }
 
     @Override
@@ -60,7 +70,7 @@ public class TraineeStorage implements Storage<Trainee> {
 
     @Override
     public void update(Trainee trainee) throws IllegalArgumentException {
-          trainees.put(getKey(trainee), trainee.clone());
+        trainees.put(getKey(trainee), trainee.clone());
 
     }
 
@@ -93,7 +103,7 @@ public class TraineeStorage implements Storage<Trainee> {
                 .stream()
                 .filter(trainee ->
                         trainee.getUsername()
-                        .contains(usernameSubstring))
+                                .contains(usernameSubstring))
                 .toList();
     }
 

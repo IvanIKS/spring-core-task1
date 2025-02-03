@@ -188,9 +188,11 @@ public class TraineeServiceTest {
         List<Trainee> listedTrainees = traineeService.list();
         assertEquals(numberOfTrainees, listedTrainees.size());
 
-        for (Trainee t : listedTrainees) {
-            assertEquals(t.getFirstName(), "Maria");
-            assertEquals(t.getLastName(), "Petrenko");
+        for (int i = 0; i < listedTrainees.size(); i++) {
+            assertEquals(listedTrainees.get(i).getFirstName(), "Maria");
+            assertEquals(listedTrainees.get(i).getLastName(), "Petrenko");
+            assertEquals(listedTrainees.get(i).isActive(), true);
+            assertEquals(listedTrainees.get(i).getAddress(), "Holovna st., 176");
         }
     }
 

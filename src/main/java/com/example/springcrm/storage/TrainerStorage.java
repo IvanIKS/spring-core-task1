@@ -36,7 +36,7 @@ public class TrainerStorage implements Storage<Trainer> {
     @Override
     @PostConstruct
     public void init() {
-        if (LOADING_FROM_FILE) {
+        if (false) {
             logger.info("Loading trainers from file");
             try (InputStream inputStream = trainersFile.getInputStream()) {
                 List<Trainer> trainers = objectMapper.readValue(inputStream, new TypeReference<>() {

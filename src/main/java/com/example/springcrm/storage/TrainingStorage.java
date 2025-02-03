@@ -31,7 +31,7 @@ public class TrainingStorage implements Storage<Training> {
 
     @Override
     public void init() {
-        if (LOADING_FROM_FILE) {
+        if (false) {
             try (InputStream inputStream = trainingFile.getInputStream()) {
                 logger.info("Loading trainings from file");
                 List<Training> trainings = objectMapper.readValue(inputStream, new TypeReference<>() {
