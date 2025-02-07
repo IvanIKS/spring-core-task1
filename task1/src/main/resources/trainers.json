@@ -1,0 +1,29 @@
+[
+    {
+      "firstName": "Timur",
+      "lastName": "Makarov",
+      "username": "Timur.Makarov",
+      "password": "secure123",
+      "active": true,
+      "specialization": "Yoga",
+      "userId": "trainer001"
+    },
+    {
+      "firstName": "Alisa",
+      "lastName": "Koval",
+      "username": "Alisa.Koval",
+      "password": "pass456",
+      "active": true,
+      "specialization": "Pilates",
+      "userId": "trainer002"
+    },
+    {
+      "firstName": "Maksym",
+      "lastName": "Chorny",
+      "username": "Maksym.Chorny",
+      "password": "train789",
+      "active": false,
+      "specialization": "Weightlifting",
+      "userId": "trainer003"
+    }
+  ]
