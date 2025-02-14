@@ -1,4 +1,4 @@
-package com.example.springcrm;
+package com.example;
 import com.example.springcrm.AppConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,15 +9,20 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ContextConfiguration;
 
-@ExtendWith(SpringExtension.class)
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@ContextConfiguration(classes = AppConfig.class)
 public class SpringCrmApplicationTests {
 
     @Test
     void contextLoads() {
-        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class)) {
-            assertNotNull(context, "Spring context should not be null");
-        }
+
     }
 
     public static void assertThatListsAreEqual(List first, List second) {

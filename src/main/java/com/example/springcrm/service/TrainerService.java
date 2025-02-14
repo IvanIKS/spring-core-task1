@@ -3,7 +3,6 @@ package com.example.springcrm.service;
 import com.example.springcrm.dao.TrainerDao;
 import com.example.springcrm.exception.OutdatedUsernameException;
 import com.example.springcrm.exception.UserAlreadyExistsException;
-import com.example.springcrm.model.Trainee;
 import com.example.springcrm.model.Trainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service("trainerService")
 public class TrainerService extends UserService {
@@ -39,18 +39,12 @@ public class TrainerService extends UserService {
         } catch (UserAlreadyExistsException e) {
             logger.error(e.getMessage());
 
-            List<Trainer> alreadyRegistered = trainerDao.getAllByUsername(username);
+            trainer = handleUsernameOverlap(trainer);
 
-            String lastExistingUsername = alreadyRegistered
-                    .stream()
-                    .map(Trainer::getUsername)
-                    .max(String::compareTo)
-                    .orElse(null);
-
-            username = handleUsernameOverlap(username, lastExistingUsername);
-            trainer.setUsername(username);
             trainerDao.create(trainer);
             logger.info("Trainer created with username: {}", username);
+        } catch (IllegalArgumentException e) {
+            logger.error("Failed to create a user, user had invalid values: " + e.getMessage());
         }
     }
 
@@ -64,15 +58,48 @@ public class TrainerService extends UserService {
             String username = generateUsername(trainer.getFirstName(), trainer.getLastName());
             trainer.setUsername(username);
 
-            trainerDao.update(trainer);
+            updateWithNameCheck(trainer);
+            logger.info("Trainer successfully updated with username: {}", username);
+        } catch (IllegalArgumentException e) {
+            logger.error("Failed to create a user, user had invalid values: " + e.getMessage());
         }
     }
 
-    public Trainer select(String username) {
-        return trainerDao.get(username);
+    public Optional<Trainer> select(String username) {
+        return trainerDao.getbyUsername(username);
     }
 
     public List<Trainer> list() {
         return trainerDao.getAll();
+    }
+
+    private Trainer handleUsernameOverlap(Trainer trainer) {
+        trainer.setUserId(null);
+        String username = trainer.getUsername();
+
+        List<Trainer> alreadyRegistered = trainerDao.getAllByUsername(username);
+
+        String lastUsername = alreadyRegistered
+                .stream()
+                .map(Trainer::getUsername)
+                .max(String::compareTo)
+                .orElse(null);
+
+        username = nextValidUsername(lastUsername);
+        trainer.setUsername(username);
+
+        return trainer;
+    }
+
+    private void updateWithNameCheck(Trainer trainer) {
+        try {
+            trainerDao.update(trainer);
+        } catch (UserAlreadyExistsException e) {
+            logger.error(e.getMessage());
+
+            trainer = handleUsernameOverlap(trainer);
+
+            trainerDao.update(trainer);
+        }
     }
 }

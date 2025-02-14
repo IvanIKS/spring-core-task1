@@ -1,12 +1,31 @@
 package com.example.springcrm.model;
 
+import jakarta.persistence.*;
+
 import java.util.Objects;
 
+@Entity
+@Table(name = "app_users")
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "userId")
+    private String userId;
+
+    @Column(nullable = false)
     private String firstName;
+
+    @Column(nullable = false)
     private String lastName;
+
+    @Column(nullable = false, unique = true)
     private String username;
+
+    @Column(nullable = false)
     private String password;
+
+    @Column(nullable = false)
     private boolean isActive;
 
     public User() {
@@ -22,6 +41,14 @@ public class User {
         this.username = username;
         this.password = password;
         this.isActive = isActive;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String id) {
+        this.userId = id;
     }
 
     public String getFirstName() {
@@ -62,6 +89,10 @@ public class User {
 
     public void setActive(boolean active) {
         isActive = active;
+    }
+
+    public String getFullName() {
+        return firstName + " " + lastName;
     }
 
     @Override

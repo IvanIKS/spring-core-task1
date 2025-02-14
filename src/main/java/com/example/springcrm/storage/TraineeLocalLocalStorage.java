@@ -17,16 +17,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Deprecated
 @Repository("traineeStorage")
-public class TraineeStorage implements Storage<Trainee> {
+public class TraineeLocalLocalStorage implements LocalStorage<Trainee> {
     private static final String FILE_PATH = "trainees.json";
+    @Value("storage.loading.from.file")
+    private static boolean LOADING_FROM_FILE;
 
     private final Map<String, Trainee> trainees = new HashMap<String, Trainee>();
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private static Logger logger = LoggerFactory.getLogger(TraineeStorage.class);
+    private static Logger logger = LoggerFactory.getLogger(TraineeLocalLocalStorage.class);
 
-    public TraineeStorage() {
+    public TraineeLocalLocalStorage() {
         logger.info("Created traineeStorage instance");
     }
 
@@ -38,7 +41,6 @@ public class TraineeStorage implements Storage<Trainee> {
             try {
                 logger.info("Loading trainees from resources: " + FILE_PATH);
 
-                // Створюємо ресурс із підставленим значенням
                 Resource resource = new ClassPathResource(FILE_PATH);
                 if (!resource.exists()) {
                     throw new RuntimeException("File not found in resources: " + FILE_PATH);
@@ -54,6 +56,8 @@ public class TraineeStorage implements Storage<Trainee> {
             } catch (IOException e) {
                 throw new RuntimeException("Failed to load trainees from file: " + FILE_PATH, e);
             }
+        } else {
+            logger.info("Initializing traineeStorage from file disabled");
         }
 
     }

@@ -1,19 +1,20 @@
 package com.example.springcrm.model;
 
+import jakarta.persistence.*;
+
+@Entity
 public class TrainingType {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+
+    @Column(nullable = false, unique = true/*, updatable = false*/)
     private String trainingTypeName;
+
 
     public TrainingType() {}
 
     public TrainingType(String trainingTypeName) {
-        this.trainingTypeName = trainingTypeName;
-    }
-
-    public String getTrainingTypeName() {
-        return trainingTypeName;
-    }
-
-    public void setTrainingTypeName(String trainingTypeName) {
         this.trainingTypeName = trainingTypeName;
     }
 
@@ -28,5 +29,21 @@ public class TrainingType {
     @Override
     public int hashCode() {
         return trainingTypeName.hashCode();
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public String getTrainingTypeName() {
+        return trainingTypeName;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setTrainingTypeName(String trainingTypeName) {
+        this.trainingTypeName = trainingTypeName;
     }
 }

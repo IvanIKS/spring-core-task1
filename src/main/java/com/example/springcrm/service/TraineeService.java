@@ -1,6 +1,7 @@
 package com.example.springcrm.service;
 
 import com.example.springcrm.dao.TraineeDao;
+import com.example.springcrm.exception.DeletingNonexistentUserException;
 import com.example.springcrm.exception.OutdatedUsernameException;
 import com.example.springcrm.exception.UserAlreadyExistsException;
 import com.example.springcrm.model.Trainee;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service("traineeService")
 public class TraineeService extends UserService {
@@ -26,32 +28,31 @@ public class TraineeService extends UserService {
     }
 
     public void create(Trainee trainee) {
-        String username = generateUsername(trainee.getFirstName(), trainee.getLastName());
-        String password = generateRandomPassword(RANDOM_PASSWORD_LENGTH);
-
-        trainee.setUsername(username);
-        trainee.setPassword(password);
         try {
+            validateName(trainee);
+
+            String username = generateUsername(trainee.getFirstName(), trainee.getLastName());
+            String password = generateRandomPassword(RANDOM_PASSWORD_LENGTH);
+
+            trainee.setUsername(username);
+            trainee.setPassword(password);
+
             traineeDao.create(trainee);
 
             logger.info("Trainee created with username: {}", username);
         } catch (UserAlreadyExistsException e) {
             logger.error(e.getMessage());
 
-            List<Trainee> alreadyRegistered = traineeDao.getAllByUsername(username);
+            trainee = this.handleUsernameOverlap(trainee);
 
-            String lastExistingUsername = alreadyRegistered
-                    .stream()
-                    .map(Trainee::getUsername)
-                    .max(String::compareTo)
-                    .orElse(null);
-
-            username = handleUsernameOverlap(username, lastExistingUsername);
-            trainee.setUsername(username);
             traineeDao.create(trainee);
-            logger.info("Trainee created with username: {}", username);
+            logger.info("Trainee created with username: {}", trainee.getUsername());
+        } catch (IllegalArgumentException e) {
+            logger.error(e.getMessage());
         }
     }
+
+
 
     public void update(Trainee trainee) {
         try {
@@ -59,26 +60,60 @@ public class TraineeService extends UserService {
             logger.info("Trainee {} updated", trainee.getUsername());
         } catch (OutdatedUsernameException e) {
             logger.error(e.getMessage());
-
+            trainee = select(trainee.getUserId()).orElse(trainee);
             String username = generateUsername(trainee.getFirstName(), trainee.getLastName());
             trainee.setUsername(username);
 
-            traineeDao.update(trainee);
+            updateWithNameCheck(trainee);
+        } catch (IllegalArgumentException e) {
+            logger.error("Failed to update a user, user had invalid values: " + e.getMessage());
         }
     }
 
     public void delete(Trainee trainee) {
-        traineeDao.delete(trainee);
-        logger.info("Trainee {} deleted", trainee.getUsername());
+        try {
+            traineeDao.delete(trainee);
+            logger.info("Trainee {} deleted", trainee.getUsername());
+        } catch (DeletingNonexistentUserException ex) {
+            logger.error("Trying to delete user that does not exist in database" + ex.getMessage());
+        }
     }
 
-    public Trainee select(String username) {
-        return traineeDao.get(username);
+    public Optional<Trainee> select(String username) {
+        return traineeDao.getByUsername(username);
     }
 
     public List<Trainee> list() {
         return traineeDao.getAll();
     }
 
+    private Trainee handleUsernameOverlap(Trainee trainee) {
+        trainee.setUserId(null);
+        String username = trainee.getUsername();
 
+        List<Trainee> alreadyRegistered = traineeDao.getAllByUsername(username);
+
+        String lastUsername = alreadyRegistered
+                .stream()
+                .map(Trainee::getUsername)
+                .max(String::compareTo)
+                .orElse(null);
+
+        username = nextValidUsername(lastUsername);
+        trainee.setUsername(username);
+
+        return trainee;
+    }
+
+    private void updateWithNameCheck(Trainee trainee) {
+        try {
+            traineeDao.update(trainee);
+        } catch (UserAlreadyExistsException e) {
+            logger.error(e.getMessage());
+
+            trainee = handleUsernameOverlap(trainee);
+
+            traineeDao.update(trainee);
+        }
+    }
 }

@@ -1,6 +1,5 @@
 package com.example.springcrm.storage;
 
-import com.example.springcrm.model.Trainee;
 import com.example.springcrm.model.Training;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,17 +16,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Deprecated
 @Repository("trainingStorage")
-public class TrainingStorage implements Storage<Training> {
+public class TrainingLocalLocalStorage implements LocalStorage<Training> {
     private static final String FILE_PATH = "trainings.json";
-
+    @Value("storage.loading.from.file")
+    private static boolean LOADING_FROM_FILE;
 
     private final Map<String, Training> trainings = new HashMap<String, Training>();
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private static Logger logger = LoggerFactory.getLogger(TrainingStorage.class);
+    private static Logger logger = LoggerFactory.getLogger(TrainingLocalLocalStorage.class);
 
-    public TrainingStorage() {
+    public TrainingLocalLocalStorage() {
         logger.info("Created trainingStorage instance");
     }
 
@@ -37,7 +38,6 @@ public class TrainingStorage implements Storage<Training> {
             try {
                 logger.info("Loading trainings from resources: " + FILE_PATH);
 
-                // Створюємо ресурс із підставленим значенням
                 Resource resource = new ClassPathResource(FILE_PATH);
                 if (!resource.exists()) {
                     throw new RuntimeException("File not found in resources: " + FILE_PATH);
@@ -53,6 +53,8 @@ public class TrainingStorage implements Storage<Training> {
             } catch (IOException e) {
                 throw new RuntimeException("Failed to load trainees from file: " + FILE_PATH, e);
             }
+        } else {
+            logger.info("Initializing trainingStorage from file disabled");
         }
     }
 
@@ -92,6 +94,6 @@ public class TrainingStorage implements Storage<Training> {
     }
 
     private static String getKey(Training training) {
-        return training.getId();
+        return String.valueOf(training.getId());
     }
 }

@@ -1,52 +1,68 @@
 package com.example.springcrm.model;
 
+import jakarta.persistence.*;
+
 import java.time.Duration;
 import java.util.Date;
 import java.util.Objects;
 
+@Entity
 public class Training implements Cloneable {
-    private String traineeId;
-    private String trainerId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
+    @ManyToOne(cascade = CascadeType.MERGE)
+    @JoinColumn(name = "trainee_id", nullable = false)
+    private Trainee trainee;
+
+    @ManyToOne(cascade =  CascadeType.MERGE)
+    @JoinColumn(name = "trainer_id", nullable = false)
+    private Trainer trainer;
+
+    @Column
     private String trainerName;
+
+    @ManyToOne(cascade = CascadeType.MERGE)
+    @JoinColumn(name = "training_type_id", nullable = true)
     private TrainingType trainingType;
+
+    @Column
     private Date trainingDate;
+
+    @Column
     private Duration trainingDuration;
+
 
     public Training() {}
 
-    public Training(String traineeId,
-                    String trainerId,
-                    String trainerName,
+    public Training(Trainee trainee,
+                    Trainer trainer,
                     TrainingType trainingType,
                     Date trainingDate,
                     Duration trainingDuration) {
-        this.traineeId = traineeId;
-        this.trainerId = trainerId;
-        this.trainerName = trainerName;
+        this.trainee = trainee;
+        this.trainer = trainer;
+        this.trainerName = trainer.getFullName();
         this.trainingType = trainingType;
         this.trainingDate = trainingDate;
         this.trainingDuration = trainingDuration;
     }
 
-    //This is a combined id used to store in DB.
-    public String getId() {
-        return trainingDate.toString() + " " + traineeId + " " + trainerId;
+    public Trainee getTrainee() {
+        return trainee;
     }
 
-    public String getTraineeId() {
-        return traineeId;
+    public void setTrainee(Trainee trainee) {
+        this.trainee = trainee;
     }
 
-    public void setTraineeId(String traineeId) {
-        this.traineeId = traineeId;
+    public Trainer getTrainer() {
+        return trainer;
     }
 
-    public String getTrainerId() {
-        return trainerId;
-    }
-
-    public void setTrainerId(String trainerId) {
-        this.trainerId = trainerId;
+    public void setTrainer(Trainer trainer) {
+        this.trainer = trainer;
     }
 
     public String getTrainerName() {
@@ -86,8 +102,8 @@ public class Training implements Cloneable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Training training = (Training) o;
-        return this.traineeId.equals(training.traineeId)
-                && this.trainerId.equals(training.trainerId)
+        return this.trainee.equals(training.trainee)
+                && this.trainer.equals(training.trainer)
                 && this.trainerName.equals(training.trainerName)
                 && this.trainingType.equals(training.trainingType)
                 && this.trainingDate.equals(training.trainingDate)
@@ -97,8 +113,8 @@ public class Training implements Cloneable {
     @Override
     public int hashCode() {
         return Objects.hash(
-                traineeId,
-                trainerId,
+                trainee,
+                trainer,
                 trainerName,
                 trainingType,
                 trainingDate,
@@ -113,5 +129,13 @@ public class Training implements Cloneable {
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getId() {
+        return id;
     }
 }

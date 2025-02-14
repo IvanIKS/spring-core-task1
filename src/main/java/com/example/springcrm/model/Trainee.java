@@ -1,12 +1,24 @@
 package com.example.springcrm.model;
 
-import java.util.Date;
-import java.util.Objects;
+import jakarta.persistence.*;
 
+import java.util.*;
+
+@Entity
 public class Trainee extends User implements Cloneable {
+
+    @Column(nullable = true)
     private Date dateOfBirth;
+
+    @Column(nullable = true)
     private String address;
-    private String userId;
+
+    @Column(nullable = true)
+    @OneToMany(mappedBy = "trainee", cascade = CascadeType.MERGE, orphanRemoval = false)
+    private List<Training> trainings;
+
+    @ManyToMany(mappedBy = "trainees")
+    private Set<Trainer> trainers = new HashSet<>();
 
     public Trainee() {}
 
@@ -16,12 +28,18 @@ public class Trainee extends User implements Cloneable {
                    String password,
                    boolean isActive,
                    Date dateOfBirth,
-                   String address,
-                   String userId) {
+                   String address) {
         super(firstName, lastName, username, password, isActive);
         this.dateOfBirth = dateOfBirth;
         this.address = address;
-        this.userId = userId;
+    }
+
+    public List<Training> getTrainings() {
+        return trainings;
+    }
+
+    public void setTrainings(List<Training> trainings) {
+        this.trainings = trainings;
     }
 
     public Date getDateOfBirth() {
@@ -40,13 +58,6 @@ public class Trainee extends User implements Cloneable {
         this.address = address;
     }
 
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -55,8 +66,7 @@ public class Trainee extends User implements Cloneable {
         Trainee trainee = (Trainee) o;
         return super.equals(o)
                 && this.getDateOfBirth().equals(trainee.getDateOfBirth())
-                && this.getAddress().equals(trainee.getAddress())
-                && this.getUserId().equals(trainee.getUserId());
+                && this.getAddress().equals(trainee.getAddress());
     }
 
     @Override

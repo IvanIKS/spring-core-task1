@@ -1,69 +1,223 @@
 package com.example.springcrm.dao;
 
+import com.example.springcrm.exception.DeletingNonexistentUserException;
 import com.example.springcrm.exception.OutdatedUsernameException;
 import com.example.springcrm.exception.UserAlreadyExistsException;
-import com.example.springcrm.model.Trainee;
 import com.example.springcrm.model.Trainer;
-import com.example.springcrm.storage.Storage;
-import com.example.springcrm.storage.TrainerStorage;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hibernate.PropertyValueException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.EntityExistsException;
 import java.util.List;
+import java.util.Optional;
+
+import static com.example.springcrm.dao.UserUtil.needsNameUpdate;
+import static com.example.springcrm.dao.UserUtil.validateUserForDatabase;
 
 @Repository
 public class TrainerDao implements Dao<Trainer> {
-    private final Storage storage;
+    private final SessionFactory factory;
 
-    @Autowired
-    public TrainerDao(@Qualifier("trainerStorage") Storage storage) {
-        this.storage = storage;
+    public TrainerDao(@Qualifier("sessionFactory") SessionFactory factory) {
+        this.factory = factory;
     }
 
-    @Override
+    public Optional<Trainer> getbyUsername(String username) {
+        Session session = null;
+        Trainer result;
+        try {
+            session = factory.openSession();
 
-    public Trainer get(String id) {
-        return (Trainer) storage.get(id);
-    }
+            Query<Trainer> query = session.createQuery(
+                    "FROM Trainer t WHERE t.username = :name", Trainer.class
+            );
+            query.setParameter("name", username);
 
-    @Override
-    public void create(Trainer trainer) throws UserAlreadyExistsException {
-        String key = trainer.getUsername();
-        if (trainer.getUserId() == null) {
-            trainer.setUserId(storage.getNextId());
+            result = query.getResultList().get(0);
+        } catch (IndexOutOfBoundsException ex) {
+            return Optional.empty();
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to get trainer. " + ex.getClass() + ex.getMessage());
+        } finally {
+            if (session != null) {
+                session.close();
+            }
         }
-        if (storage.get(key) == null) {
-            storage.update(trainer);
-        } else {
-            throw new UserAlreadyExistsException("Trainer already exists");
+        return Optional.of(result);
+    }
+
+    @Override
+    public Optional<Trainer> get(String id) {
+        Session session = null;
+        Trainer result;
+        try {
+            session = factory.openSession();
+
+            Query<Trainer> query = session.createQuery(
+                    "FROM Trainer t WHERE t.userId LIKE :id", Trainer.class
+            );
+            query.setParameter("id", id);
+
+            result = query.getResultList().get(0);
+        } catch (IndexOutOfBoundsException ex) {
+            return Optional.empty();
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to get trainer. " + ex.getClass() + ex.getMessage());
+        } finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+        return Optional.of(result);
+    }
+
+    @Override
+    public void create(Trainer trainer) throws UserAlreadyExistsException, IllegalArgumentException {
+        Session session = null;
+        Transaction transaction = null;
+        try {
+            validateUserForDatabase(trainer);
+
+            session = factory.openSession();
+            transaction = session.beginTransaction();
+
+            session.persist(trainer);
+            transaction.commit();
+
+        } catch (EntityExistsException | ConstraintViolationException ex) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            throw new UserAlreadyExistsException("Failed to create trainer: " + trainer.toString()
+                    + " reason: " + ex.getMessage());
+        } catch (PropertyValueException ex) {
+            throw new IllegalArgumentException("Failed to create trainer: " + trainer.toString()
+                    + " reason: " + ex.getMessage());
+        } finally {
+            if (session != null) {
+                session.close();
+            }
         }
     }
 
     @Override
-    public void update(Trainer trainer) {
-        Trainer oldVersion = (Trainer) storage.get(trainer);
+    public void update(Trainer trainer) throws OutdatedUsernameException {
 
-        if (oldVersion != null
-                && userNameHasChanged(oldVersion, trainer)) {
-            throw new OutdatedUsernameException("Trainer name has been changed and trainer username must be updated");
+        Session session = null;
+        Transaction transaction = null;
+
+        try {
+            validateUserForDatabase(trainer);
+
+            session = factory.openSession();
+            transaction = session.beginTransaction();
+
+            Trainer oldTrainer = get(trainer.getUserId()).orElse(null);
+
+
+            // Check if the username needs to be changed
+            if (needsNameUpdate(oldTrainer, trainer)) {
+                throw new OutdatedUsernameException(String.format(
+                        "Trainer name %s %s has been updated to %s %s and their username should be changed",
+                        oldTrainer.getFirstName(), oldTrainer.getLastName(),
+                        trainer.getFirstName(), trainer.getLastName()
+                ));
+            }
+
+            // Update fields
+            oldTrainer = trainer.clone();
+
+            session.merge(oldTrainer);
+
+            transaction.commit();
+        } catch (ConstraintViolationException ex) {
+            throw new UserAlreadyExistsException("Failed to create trainer: " + trainer.toString());
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            throw e;
+        } finally {
+            if (session != null) {
+                session.close();
+            }
         }
-        storage.update(trainer);
+    }
+
+
+    @Override
+    public void delete(Trainer trainer) throws DeletingNonexistentUserException {
+        Session session = null;
+        Transaction transaction = null;
+
+        try {
+            session = factory.openSession();
+            transaction = session.beginTransaction();
+
+            Trainer existingTrainer = get(trainer.getUsername()).orElse(null);
+
+            session.remove(existingTrainer);
+
+            transaction.commit();
+        } catch (RuntimeException ex) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            throw new DeletingNonexistentUserException(ex.getMessage());
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            throw e;
+        } finally {
+            if (session != null) {
+                session.close();
+            }
+        }
     }
 
     @Override
-
     public List<Trainer> getAll() {
-        return storage.getAll();
+        Session session = null;
+        List<Trainer> results;
+        try {
+            session = factory.openSession();
+            results = session.createQuery("SELECT a FROM Trainer a", Trainer.class).getResultList();
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to get all Trainers. " + ex.getMessage());
+        } finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+        return results;
     }
 
-    @Override
-    public void delete(Trainer trainer) {
-        storage.delete(trainer);
-    }
+    public List<Trainer> getAllByUsername(String usernameSubstring) {
+        Session session = null;
+        List<Trainer> results;
+        try {
+            session = factory.openSession();
 
-    public List<Trainer> getAllByUsername(String usernameSubtring) {
-        return ((TrainerStorage) storage).getAllByUsername(usernameSubtring);
+            Query<Trainer> query = session.createQuery(
+                    "FROM Trainer t WHERE t.username LIKE :prefix", Trainer.class
+            );
+            query.setParameter("prefix", usernameSubstring + "%");
+            results = query.getResultList();
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to get all by username. " + ex.getMessage());
+        } finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+        return results;
     }
 
 }

@@ -2,8 +2,8 @@ package com.example.springcrm.storage;
 
 import java.util.List;
 
-public interface Storage<T> {
-    static boolean LOADING_FROM_FILE = false;
+@Deprecated
+public interface LocalStorage<T> {
 
     void init();
 

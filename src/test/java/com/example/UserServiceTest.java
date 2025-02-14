@@ -1,37 +1,26 @@
-package com.example.springcrm.service;
+package com.example;
 
+
+
+//Tests for functions defined in abstract UserService class.
+
+import com.example.springcrm.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-
-//Tests for functions defined in abstract UserService class.
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class UserServiceTest {
     UserService userService;
 
     @BeforeEach
     void setUp() {
-        userService = new UserService() {
-            @Override
-            String generateRandomPassword(int length) {
-                return super.generateRandomPassword(length);
-            }
 
-            @Override
-            String generateUsername(String firstName, String lastName) {
-                return super.generateUsername(firstName, lastName);
-            }
-
-            @Override
-            String handleUsernameOverlap(String username, String lastExistingUsername) {
-                return super.handleUsernameOverlap(username, lastExistingUsername);
-            }
-        };
+        // Creating anonymous class that is not TrainerService nor TraineeService.
+        userService = new UserService() {};
     }
 
     @Test
@@ -47,7 +36,7 @@ class UserServiceTest {
 
             char[] chars = generatedPassword.toCharArray();
             for (char aChar : chars) {
-                // Check if generated password consists only of permitted characters.
+                // Check that generated password doesn't contain characters other than permitted.
                 assert (permittedCharacters.indexOf(aChar) != -1);
             }
         }
@@ -69,17 +58,20 @@ class UserServiceTest {
     }
 
     @Test
-    void usernameOverlapTests() {
-        Map<String[], String> expectedResults = new HashMap<>();
-        expectedResults.put(new String[]{"Petro.Ivanenko", "Petro.Ivanenko"}, "Petro.Ivanenko1");
-        expectedResults.put(new String[]{"Petro.Ivanenko", "Petro.Ivanenko1"}, "Petro.Ivanenko2");
-        expectedResults.put(new String[]{"Petro.Ivanenko", "Petro.Ivanenko15"}, "Petro.Ivanenko16");
-        expectedResults.put(new String[]{"Petro.Ivanenko", "Petro.Ivanenko1075"}, "Petro.Ivanenko1076");
+    void overlapHandlingTests() {
+        Map<String, String> expectedResults = new HashMap<>();
+        expectedResults.put( "Petro.Ivanenko", "Petro.Ivanenko1");
+        expectedResults.put( "Petro.Ivanenko1", "Petro.Ivanenko2");
+        expectedResults.put( "Petro.Ivanenko15", "Petro.Ivanenko16");
+        expectedResults.put("Petro.Ivanenko1075", "Petro.Ivanenko1076");
 
+        expectedResults.put("John1", "John2");
+        expectedResults.put("Smith1", "Smith2");
 
-        for (String[] usernames : expectedResults.keySet()) {
-            String expected = expectedResults.get(usernames);
-            String actual = userService.handleUsernameOverlap(usernames[0], usernames[1]);
+        for (String username : expectedResults.keySet()) {
+            String expected = expectedResults.get(username);
+            String actual = userService.nextValidUsername(username);
+
             assertEquals(expected, actual);
         }
     }

@@ -2,12 +2,14 @@ package com.example.springcrm.service;
 
 import com.example.springcrm.dao.TrainingDao;
 import com.example.springcrm.model.Training;
+import jakarta.persistence.EntityExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service("trainingService")
 public class TrainingService  {
@@ -25,12 +27,12 @@ public class TrainingService  {
         try {
             trainingDao.create(training);
             logger.info("Training created");
-        } catch (IllegalArgumentException e) {
+        } catch (EntityExistsException | IllegalArgumentException e) {
             logger.error(e.getMessage());
         }
     }
 
-    public Training select(String id) {
+    public Optional<Training> select(String id) {
         return trainingDao.get(id);
     }
 

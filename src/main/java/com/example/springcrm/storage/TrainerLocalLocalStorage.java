@@ -1,6 +1,5 @@
 package com.example.springcrm.storage;
 
-import com.example.springcrm.model.Trainee;
 import com.example.springcrm.model.Trainer;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,19 +16,20 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
+@Deprecated
 @Repository("trainerStorage")
-public class TrainerStorage implements Storage<Trainer> {
+public class TrainerLocalLocalStorage implements LocalStorage<Trainer> {
     private static final String FILE_PATH = "trainers.json";
-
+    @Value("storage.loading.from.file")
+    private static boolean LOADING_FROM_FILE;
 
     private final Map<String, Trainer> trainers = new HashMap<String, Trainer>();
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private static Logger logger = LoggerFactory.getLogger(TrainerStorage.class);
+    private static Logger logger = LoggerFactory.getLogger(TrainerLocalLocalStorage.class);
 
-    public TrainerStorage() {
+    public TrainerLocalLocalStorage() {
         logger.info("Created trainerStorage instance");
     }
 
@@ -40,7 +40,6 @@ public class TrainerStorage implements Storage<Trainer> {
             try {
                 logger.info("Loading trainees from resources: " + FILE_PATH);
 
-                // Створюємо ресурс із підставленим значенням
                 Resource resource = new ClassPathResource(FILE_PATH);
                 if (!resource.exists()) {
                     throw new RuntimeException("File not found in resources: " + FILE_PATH);
@@ -56,6 +55,8 @@ public class TrainerStorage implements Storage<Trainer> {
             } catch (IOException e) {
                 throw new RuntimeException("Failed to load trainers from file: " + FILE_PATH, e);
             }
+        } else {
+            logger.info("Initializing trainerStorage from file disabled");
         }
     }
 

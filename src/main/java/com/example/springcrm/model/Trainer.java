@@ -1,10 +1,33 @@
 package com.example.springcrm.model;
 
+import jakarta.persistence.Column;
+
+import java.util.HashSet;
 import java.util.Objects;
 
+import jakarta.persistence.*;
+
+import java.util.List;
+import java.util.Set;
+
+@Entity
 public class Trainer extends User implements Cloneable {
+    @Column(nullable = false)
     private String specialization;
-    private String userId;
+
+    @OneToMany(mappedBy = "trainer", cascade = CascadeType.MERGE, orphanRemoval = false)
+    private List<Training> trainings;
+
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @JoinTable(name = "trainees_trainers",
+            joinColumns = @JoinColumn(name = "trainer_userId"),
+            inverseJoinColumns = @JoinColumn(name = "trainee_userId")
+    )
+    private Set<Trainee> trainees = new HashSet<>();
+
+    public Set<Trainee> getTrainees() {
+        return trainees;
+    }
 
     public Trainer() {
     }
@@ -14,11 +37,17 @@ public class Trainer extends User implements Cloneable {
                    String username,
                    String password,
                    boolean isActive,
-                   String specialization,
-                   String userId) {
+                   String specialization) {
         super(firstName, lastName, username, password, isActive);
         this.specialization = specialization;
-        this.userId = userId;
+    }
+
+    public List<Training> getTrainings() {
+        return trainings;
+    }
+
+    public void setTrainings(List<Training> trainings) {
+        this.trainings = trainings;
     }
 
     public String getSpecialization() {
@@ -29,19 +58,11 @@ public class Trainer extends User implements Cloneable {
         this.specialization = specialization;
     }
 
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
 
     @Override
     public boolean equals(Object obj) {
         return super.equals(obj)
-                && this.getSpecialization().equals(((Trainer) obj).getSpecialization())
-                && this.getUserId().equals(((Trainer) obj).getUserId());
+                && this.getSpecialization().equals(((Trainer) obj).getSpecialization());
     }
 
     @Override
@@ -56,7 +77,7 @@ public class Trainer extends User implements Cloneable {
     }
 
     @Override
-    public Trainer clone()  {
+    public Trainer clone() {
         try {
             return (Trainer) super.clone();
         } catch (CloneNotSupportedException e) {
