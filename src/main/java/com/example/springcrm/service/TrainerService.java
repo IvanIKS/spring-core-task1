@@ -74,6 +74,8 @@ public class TrainerService extends UserService {
 
             updateWithNameCheck(trainer);
             logger.info("Trainer successfully updated with username: {}", username);
+        } catch (UnauthorisedException e) {
+            logger.error("Failed to authenticate user" + e.getMessage());
         } catch (IllegalArgumentException e) {
             logger.error("Failed to create a user, user had invalid values: " + e.getMessage());
         }

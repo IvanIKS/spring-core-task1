@@ -86,8 +86,11 @@ public class TraineeService extends UserService {
 
     public void delete(Trainee trainee) {
         try {
+            authenticationService.authenticate(trainee);
             traineeDao.delete(trainee);
             logger.info("Trainee {} deleted", trainee.getUsername());
+        } catch (UnauthorisedException e) {
+            logger.error("Failed to authenticate user" + e.getMessage());
         } catch (DeletingNonexistentUserException ex) {
             logger.error("Trying to delete user that does not exist in database" + ex.getMessage());
         }

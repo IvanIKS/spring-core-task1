@@ -4,12 +4,14 @@ package com.example;
 
 //Tests for functions defined in abstract UserService class.
 
+import com.example.springcrm.model.User;
 import com.example.springcrm.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -20,7 +22,22 @@ class UserServiceTest {
     void setUp() {
 
         // Creating anonymous class that is not TrainerService nor TraineeService.
-        userService = new UserService() {};
+        userService = new UserService() {
+            @Override
+            public Optional<? extends User> activateAccount(String username) {
+                return Optional.empty();
+            }
+
+            @Override
+            public Optional<? extends User> deactivateAccount(String username) {
+                return Optional.empty();
+            }
+
+            @Override
+            public Optional<? extends User> changePassword(String username, String password, String newPassword) {
+                return Optional.empty();
+            }
+        };
     }
 
     @Test
