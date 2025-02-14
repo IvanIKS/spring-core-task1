@@ -20,8 +20,8 @@ public class Training implements Cloneable {
     @JoinColumn(name = "trainer_id", nullable = false)
     private Trainer trainer;
 
-    @Column
-    private String trainerName;
+    @Column(nullable = false)
+    private String trainingName;
 
     @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "training_type_id", nullable = true)
@@ -38,12 +38,13 @@ public class Training implements Cloneable {
 
     public Training(Trainee trainee,
                     Trainer trainer,
+                    String trainingName,
                     TrainingType trainingType,
                     Date trainingDate,
                     Duration trainingDuration) {
         this.trainee = trainee;
         this.trainer = trainer;
-        this.trainerName = trainer.getFullName();
+        this.trainingName = trainingName;
         this.trainingType = trainingType;
         this.trainingDate = trainingDate;
         this.trainingDuration = trainingDuration;
@@ -65,12 +66,12 @@ public class Training implements Cloneable {
         this.trainer = trainer;
     }
 
-    public String getTrainerName() {
-        return trainerName;
+    public String getTrainingName() {
+        return trainingName;
     }
 
-    public void setTrainerName(String trainerName) {
-        this.trainerName = trainerName;
+    public void setTrainingName(String trainingName) {
+        this.trainingName = trainingName;
     }
 
     public TrainingType getTrainingType() {
@@ -104,7 +105,7 @@ public class Training implements Cloneable {
         Training training = (Training) o;
         return this.trainee.equals(training.trainee)
                 && this.trainer.equals(training.trainer)
-                && this.trainerName.equals(training.trainerName)
+                && this.trainingName.equals(training.trainingName)
                 && this.trainingType.equals(training.trainingType)
                 && this.trainingDate.equals(training.trainingDate)
                 && this.trainingDuration.equals(training.trainingDuration);
@@ -115,7 +116,7 @@ public class Training implements Cloneable {
         return Objects.hash(
                 trainee,
                 trainer,
-                trainerName,
+                trainingName,
                 trainingType,
                 trainingDate,
                 trainingDuration

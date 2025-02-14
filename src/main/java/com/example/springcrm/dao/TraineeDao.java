@@ -16,8 +16,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-import static com.example.springcrm.dao.UserUtil.needsNameUpdate;
-import static com.example.springcrm.dao.UserUtil.validateUserForDatabase;
 
 @Repository
 public class TraineeDao implements Dao<Trainee>, UserDao {

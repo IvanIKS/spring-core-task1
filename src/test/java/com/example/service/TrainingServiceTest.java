@@ -1,10 +1,8 @@
-package com.example;
+package com.example.service;
 
+import com.example.utils.TrainingTypeDao;
 import com.example.springcrm.dao.*;
 
-import com.example.springcrm.exception.DeletingNonexistentUserException;
-import com.example.springcrm.exception.OutdatedUsernameException;
-import com.example.springcrm.exception.UserAlreadyExistsException;
 import com.example.springcrm.model.Trainee;
 import com.example.springcrm.model.Trainer;
 import com.example.springcrm.model.Training;
@@ -12,18 +10,13 @@ import com.example.springcrm.model.TrainingType;
 import com.example.springcrm.service.TraineeService;
 import com.example.springcrm.service.TrainerService;
 import com.example.springcrm.service.TrainingService;
-import org.hibernate.PropertyValueException;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.exception.ConstraintViolationException;
-import org.hibernate.query.Query;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 
-import javax.persistence.EntityExistsException;
 import java.time.Duration;
 import java.util.Date;
 import java.util.List;
@@ -47,80 +40,6 @@ public class TrainingServiceTest {
     Training sampleTraining;
 
 
-    /**
-     * There is no way to save new Training Type from app other than this.
-     */
-    private static class TrainingTypeDao implements Dao<TrainingType> {
-        private SessionFactory factory = HibernateUtil.getSessionFactory();
-
-        @Override
-        public Optional<TrainingType> get(String id) {
-            Session session = null;
-            TrainingType result;
-            try {
-                session = factory.openSession();
-
-                Query<TrainingType> query = session.createQuery(
-                        "FROM TrainingType t WHERE t.id LIKE :id", TrainingType.class
-                );
-                query.setParameter("id", (id));
-
-                result = query.getResultList().get(0);
-            } catch (IndexOutOfBoundsException ex) {
-                return Optional.empty();
-            } catch (Exception ex) {
-                throw new RuntimeException("Failed to get TrainingType. " + ex.getClass() + ex.getMessage());
-            } finally {
-                if (session != null) {
-                    session.close();
-                }
-            }
-            return Optional.of(result);
-        }
-
-        @Override
-        public void create(TrainingType trainingType) {
-            Session session = null;
-            Transaction transaction = null;
-            try {
-
-                session = factory.openSession();
-                transaction = session.beginTransaction();
-
-                session.persist(trainingType);
-                transaction.commit();
-
-            } catch (EntityExistsException | ConstraintViolationException ex) {
-                if (transaction != null) {
-                    transaction.rollback();
-                }
-                throw new UserAlreadyExistsException("Failed to create trainingType: " + trainingType.toString()
-                        + " reason: " + ex.getMessage());
-            } catch (PropertyValueException ex) {
-                throw new IllegalArgumentException("Failed to create trainingType: " + trainingType.toString()
-                        + " reason: " + ex.getMessage());
-            } finally {
-                if (session != null) {
-                    session.close();
-                }
-            }
-        }
-
-        @Override
-        public void update(TrainingType newValue) {
-            /// There is no way nor need to update it from the app.
-        }
-
-        @Override
-        public void delete(TrainingType value) throws DeletingNonexistentUserException {
-            /// There is no way nor need to update it from the app.
-        }
-
-        @Override
-        public List<TrainingType> getAll() {
-            return List.of();
-        }
-    }
 
     @BeforeEach
     void setUp() {
@@ -161,6 +80,7 @@ public class TrainingServiceTest {
         sampleTraining = new Training(
                 trainee,
                 trainer,
+                "Yoga",
                 trainingType,
                 new Date(),
                 Duration.ofHours(1)
@@ -169,7 +89,7 @@ public class TrainingServiceTest {
     }
 
     @AfterEach
-    void cleanUpDatabase() {
+    void cleanUp() {
         Session session = HibernateUtil.getSessionFactory().openSession();
         Transaction transaction = session.beginTransaction();
 
@@ -180,6 +100,10 @@ public class TrainingServiceTest {
 
         transaction.commit();
         session.close();
+
+        trainee.setUserId(null);
+        trainer.setUserId(null);
+
     }
 
 
@@ -205,6 +129,7 @@ public class TrainingServiceTest {
             sampleTraining = new Training(
                     trainee,
                     trainer,
+                    "SomeName",
                     trainingType,
                     newDate,
                     Duration.ofHours(1)
@@ -223,17 +148,15 @@ public class TrainingServiceTest {
 
     @Test
     void saveExistingTraining_NotOK() {
+
         Training existingTraining = new Training(
                 trainee,
                 trainer,
+                "SomeName",
                 trainingType,
                 new Date(),
                 Duration.ofHours(1)
         );
-        trainingTypeDao.create(trainingType);
-
-        traineeService.create(trainee);
-        trainerService.create(trainer);
 
         trainingService.create(existingTraining);
         assertEquals(1, trainingService.list().size());
@@ -250,15 +173,13 @@ public class TrainingServiceTest {
         Training training1 = new Training(
                 trainee,
                 trainer,
+                "SomeName",
                 trainingType,
                 currentDate,
                 Duration.ofHours(1)
         );
-        traineeService.create(trainee);
-        trainerService.create(trainer);
-        trainingTypeDao.create(trainingType);
-        trainingService.create(training1);
 
+        trainingService.create(training1);
 
         List<Training> trainings = trainingService.list();
         assertEquals(1, trainings.size());
@@ -288,6 +209,7 @@ public class TrainingServiceTest {
         Training training2 = new Training(
                 trainee2,
                 trainer2,
+                "SomeName",
                 newType,
                 currentDate,
                 Duration.ofHours(1)

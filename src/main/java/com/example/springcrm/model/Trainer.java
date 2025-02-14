@@ -15,7 +15,7 @@ public class Trainer extends User implements Cloneable {
     @Column(nullable = false)
     private String specialization;
 
-    @OneToMany(mappedBy = "trainer", cascade = CascadeType.MERGE, orphanRemoval = false)
+    @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Training> trainings;
 
     @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})

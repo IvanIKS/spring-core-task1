@@ -112,13 +112,14 @@ public class TraineeService extends UserService {
             Trainee trainee = maybeTrainee.get();
             if ( ! trainee.isActive()) {
                 trainee.setActive(true);
+                update(trainee);
                 return Optional.of(trainee);
             } else {
-                logger.info("Trainer already activated");
+                logger.info("Trainee already activated");
                 return Optional.empty();
             }
         } else {
-            logger.info("Trainer not found");
+            logger.info("Trainee not found");
             return Optional.empty();
         }
     }
@@ -130,6 +131,7 @@ public class TraineeService extends UserService {
             Trainee trainee = maybeTrainee.get();
             if (trainee.isActive()) {
                 trainee.setActive(false);
+                update(trainee);
                 return Optional.of(trainee);
             } else {
                 logger.info("Trainer already deactivated");

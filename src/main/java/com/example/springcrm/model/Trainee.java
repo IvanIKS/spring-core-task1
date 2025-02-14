@@ -14,7 +14,7 @@ public class Trainee extends User implements Cloneable {
     private String address;
 
     @Column(nullable = true)
-    @OneToMany(mappedBy = "trainee", cascade = CascadeType.MERGE, orphanRemoval = false)
+    @OneToMany(mappedBy = "trainee", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Training> trainings;
 
     @ManyToMany(mappedBy = "trainees")
@@ -56,6 +56,10 @@ public class Trainee extends User implements Cloneable {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public Set<Trainer> getTrainers() {
+        return this.trainers;
     }
 
     public void addTrainer(Trainer trainer) {

@@ -1,4 +1,4 @@
-package com.example;
+package com.example.model;
 
 import com.example.springcrm.model.Trainee;
 import com.example.springcrm.model.Trainer;
@@ -45,6 +45,7 @@ public class TrainingTest {
         Training training1 = new Training(
                 trainee,
                 trainer,
+                "Yoga",
                 new TrainingType("Yoga"),
                 new Date(),
                 Duration.ofHours(1)
@@ -53,6 +54,7 @@ public class TrainingTest {
         Training training2 = new Training(
                 trainee,
                 trainer,
+                "Yoga",
                 new TrainingType("Yoga"),
                 new Date(),
                 Duration.ofHours(1)
@@ -66,6 +68,7 @@ public class TrainingTest {
         Training training1 = new Training(
                 trainee,
                 trainer,
+                "Yoga",
                 new TrainingType("Yoga"),
                 new Date(),
                 Duration.ofHours(1)

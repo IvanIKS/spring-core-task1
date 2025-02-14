@@ -17,8 +17,6 @@ import javax.persistence.EntityExistsException;
 import java.util.List;
 import java.util.Optional;
 
-import static com.example.springcrm.dao.UserUtil.needsNameUpdate;
-import static com.example.springcrm.dao.UserUtil.validateUserForDatabase;
 
 @Repository
 public class TrainerDao implements Dao<Trainer>, UserDao {

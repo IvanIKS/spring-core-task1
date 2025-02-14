@@ -3,10 +3,7 @@ package com.example.springcrm.dao;
 import com.example.springcrm.exception.DeletingNonexistentUserException;
 import com.example.springcrm.exception.OutdatedUsernameException;
 import com.example.springcrm.exception.UserAlreadyExistsException;
-import com.example.springcrm.model.Trainee;
-import com.example.springcrm.model.Trainer;
-import com.example.springcrm.model.Training;
-import com.example.springcrm.model.TrainingType;
+import com.example.springcrm.model.*;
 import org.hibernate.PropertyValueException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -20,7 +17,6 @@ import javax.persistence.EntityExistsException;
 import java.util.List;
 import java.util.Optional;
 
-import static com.example.springcrm.dao.UserUtil.needsNameUpdate;
 
 @Repository
 public class TrainingDao implements Dao<Training> {
@@ -61,12 +57,14 @@ public class TrainingDao implements Dao<Training> {
         Session session = null;
         Transaction transaction = null;
         try {
-
+            validate(training);
             session = factory.openSession();
             transaction = session.beginTransaction();
 
             Trainee attachedTrainee = session.get(Trainee.class, training.getTrainee().getUserId());
             Trainer attachedTrainer = session.get(Trainer.class, training.getTrainer().getUserId());
+            validateUser(attachedTrainee);
+            validateUser(attachedTrainer);
 
             TrainingType attachedTrainingType = session.get(TrainingType.class, training.getTrainingType().getId());
 
@@ -103,16 +101,11 @@ public class TrainingDao implements Dao<Training> {
         Transaction transaction = null;
 
         try {
-
+            validate(training);
             session = factory.openSession();
             transaction = session.beginTransaction();
 
-            Training oldTraining = get(training.getId()).orElse(null);
-
-            // Update fields
-            oldTraining = training.clone();
-
-            session.merge(oldTraining);
+            session.merge(training);
 
             transaction.commit();
         } catch (ConstraintViolationException ex) {
@@ -169,6 +162,25 @@ public class TrainingDao implements Dao<Training> {
             if (session != null) {
                 session.close();
             }
+        }
+    }
+
+    private static void validate(Training training) throws IllegalArgumentException {
+        validateUser(training.getTrainee());
+        validateUser(training.getTrainer());
+
+        if (training.getTrainingDate() == null
+                || training.getTrainingDuration() == null) {
+            throw new IllegalArgumentException("Training date and training duration cannot be null.");
+        }
+
+    }
+
+    private static void validateUser(User user) throws IllegalArgumentException {
+        if (user == null
+                || (user.getFirstName() == null || user.getLastName() == null
+                || user.getFirstName().isBlank() || user.getLastName().isBlank())) {
+            throw new IllegalArgumentException("Invalid user");
         }
     }
 }

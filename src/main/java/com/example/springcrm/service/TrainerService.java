@@ -96,6 +96,7 @@ public class TrainerService extends UserService {
             Trainer trainer = maybeTrainer.get();
             if (!trainer.isActive()) {
                 trainer.setActive(true);
+                update(trainer);
                 return Optional.of(trainer);
             } else {
                 logger.info("Trainer already activated");
@@ -114,6 +115,7 @@ public class TrainerService extends UserService {
             Trainer trainer = maybeTrainer.get();
             if (trainer.isActive()) {
                 trainer.setActive(false);
+                update(trainer);
                 return Optional.of(trainer);
             } else {
                 logger.info("Trainer already deactivated");

@@ -6,7 +6,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "app_users")
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+@Inheritance(strategy = InheritanceType.JOINED)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
