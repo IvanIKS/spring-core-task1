@@ -58,6 +58,13 @@ public class Trainee extends User implements Cloneable {
         this.address = address;
     }
 
+    public void addTrainer(Trainer trainer) {
+        this.trainers.add(trainer);
+    }
+
+    public void addTraining(Training training) {
+        this.trainings.add(training);
+    }
 
     @Override
     public boolean equals(Object o) {

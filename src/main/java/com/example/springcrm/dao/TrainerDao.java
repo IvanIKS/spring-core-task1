@@ -21,14 +21,15 @@ import static com.example.springcrm.dao.UserUtil.needsNameUpdate;
 import static com.example.springcrm.dao.UserUtil.validateUserForDatabase;
 
 @Repository
-public class TrainerDao implements Dao<Trainer> {
+public class TrainerDao implements Dao<Trainer>, UserDao {
     private final SessionFactory factory;
 
     public TrainerDao(@Qualifier("sessionFactory") SessionFactory factory) {
         this.factory = factory;
     }
 
-    public Optional<Trainer> getbyUsername(String username) {
+    @Override
+    public Optional<Trainer> getByUsername(String username) {
         Session session = null;
         Trainer result;
         try {
@@ -199,6 +200,7 @@ public class TrainerDao implements Dao<Trainer> {
         return results;
     }
 
+    @Override
     public List<Trainer> getAllByUsername(String usernameSubstring) {
         Session session = null;
         List<Trainer> results;
@@ -220,4 +222,15 @@ public class TrainerDao implements Dao<Trainer> {
         return results;
     }
 
+    public List<Trainer> getAllExcludingTrainee(String traineeUsername) {
+        return getAll()
+                .stream()
+                .filter(trainer ->
+                        trainer.getTrainees()
+                                .stream()
+                                .noneMatch(trainee ->
+                                        trainee.getUsername().equals(traineeUsername))
+                )
+                .toList();
+    }
 }

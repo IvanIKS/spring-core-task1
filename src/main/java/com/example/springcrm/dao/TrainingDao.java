@@ -70,6 +70,9 @@ public class TrainingDao implements Dao<Training> {
 
             TrainingType attachedTrainingType = session.get(TrainingType.class, training.getTrainingType().getId());
 
+            attachedTrainer.addTraining(training);
+            attachedTrainee.addTraining(training);
+
             training.setTrainee(attachedTrainee);
             training.setTrainer(attachedTrainer);
             training.setTrainingType(attachedTrainingType);

@@ -20,13 +20,14 @@ import static com.example.springcrm.dao.UserUtil.needsNameUpdate;
 import static com.example.springcrm.dao.UserUtil.validateUserForDatabase;
 
 @Repository
-public class TraineeDao implements Dao<Trainee> {
+public class TraineeDao implements Dao<Trainee>, UserDao {
     private final SessionFactory factory;
 
     public TraineeDao(@Qualifier("sessionFactory") SessionFactory factory) {
         this.factory = factory;
     }
 
+    @Override
     public Optional<Trainee> getByUsername(String username) {
         Session session = null;
         Trainee result;
@@ -197,6 +198,7 @@ public class TraineeDao implements Dao<Trainee> {
         return results;
     }
 
+    @Override
     public List<Trainee> getAllByUsername(String usernameSubstring) {
         Session session = null;
         List<Trainee> results;

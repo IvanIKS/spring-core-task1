@@ -1,13 +1,57 @@
 package com.example.springcrm.service;
 
+import com.example.springcrm.dao.Dao;
+import com.example.springcrm.dao.UserDao;
+import com.example.springcrm.exception.UnauthorisedException;
+import com.example.springcrm.model.Trainer;
 import com.example.springcrm.model.User;
+import jdk.jshell.spi.ExecutionControl;
 
+import java.util.Optional;
 import java.util.Random;
 
 
 public abstract class UserService {
     private static final String RANDOM_PASSWORD_CHARACTERS =
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    protected abstract static class AuthenticationService {
+        protected UserDao userDao;
+
+        protected AuthenticationService(UserDao userDao) {
+            this.userDao = userDao;
+        }
+
+        protected boolean authenticate(User user) throws UnauthorisedException {
+            Optional<? extends User> existingAccount = userDao.getByUsername(user.getUsername());
+            if (existingAccount.isEmpty()) {
+                return false;
+            }
+            if (existingAccount.get().getPassword().equals(user.getPassword())) {
+                return true;
+            } else {
+                throw new UnauthorisedException("Password does not match!");
+            }
+        }
+
+        protected boolean authenticate(User user, String password) throws UnauthorisedException {
+            Optional<? extends User> existingAccount = userDao.getByUsername(user.getUsername());
+            if (existingAccount.isEmpty()) {
+                return false;
+            }
+            if (existingAccount.get().getPassword().equals(password)) {
+                return true;
+            } else {
+                throw new UnauthorisedException("Password does not match!");
+            }
+        }
+    }
+
+    public abstract Optional<? extends User> activateAccount(String username);
+
+    public abstract Optional<? extends User> deactivateAccount(String username);
+
+    public abstract Optional<? extends User> changePassword(String username, String password, String newPassword);
 
     public String generateRandomPassword(int length) {
         Random random = new Random();
