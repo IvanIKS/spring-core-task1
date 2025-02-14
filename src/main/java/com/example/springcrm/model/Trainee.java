@@ -14,13 +14,17 @@ public class Trainee extends User implements Cloneable {
     private String address;
 
     @Column(nullable = true)
-    @OneToMany(mappedBy = "trainee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "trainee",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.EAGER,
+            orphanRemoval = true)
     private List<Training> trainings;
 
-    @ManyToMany(mappedBy = "trainees")
+    @ManyToMany(mappedBy = "trainees", fetch = FetchType.EAGER)
     private Set<Trainer> trainers = new HashSet<>();
 
-    public Trainee() {}
+    public Trainee() {
+    }
 
     public Trainee(String firstName,
                    String lastName,

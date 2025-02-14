@@ -1,7 +1,6 @@
 package com.example.springcrm.service;
 
 import com.example.springcrm.dao.TraineeDao;
-import com.example.springcrm.dao.TrainerDao;
 import com.example.springcrm.exception.DeletingNonexistentUserException;
 import com.example.springcrm.exception.OutdatedUsernameException;
 import com.example.springcrm.exception.UnauthorisedException;
@@ -64,7 +63,6 @@ public class TraineeService extends UserService {
     }
 
 
-
     public void update(Trainee trainee) {
         try {
             authenticationService.authenticate(trainee);
@@ -110,7 +108,7 @@ public class TraineeService extends UserService {
         Optional<Trainee> maybeTrainee = select(username);
         if (maybeTrainee.isPresent()) {
             Trainee trainee = maybeTrainee.get();
-            if ( ! trainee.isActive()) {
+            if (!trainee.isActive()) {
                 trainee.setActive(true);
                 update(trainee);
                 return Optional.of(trainee);
@@ -151,7 +149,8 @@ public class TraineeService extends UserService {
                 Trainee trainee = maybeTrainee.get();
                 if (authenticationService.authenticate(trainee, password)) {
                     trainee.setPassword(newPassword);
-                    update(trainee);
+                    //Direct call to avoid being blocked by authentication reacting to new password
+                    traineeDao.update(trainee);
                 }
                 return Optional.of(trainee);
             } else {
@@ -159,8 +158,10 @@ public class TraineeService extends UserService {
             }
         } catch (UnauthorisedException e) {
             logger.error(e.getMessage());
-            return Optional.empty();
+        } catch (IllegalArgumentException e) {
+            logger.error("Failed to create a user, user had invalid values: " + e.getMessage());
         }
+        return Optional.empty();
     }
 
     public List<Training> getTrainingsByCriteria(String username, Date from, Date to, String trainerUsername, TrainingType trainingType) {
@@ -176,18 +177,6 @@ public class TraineeService extends UserService {
                     .toList();
         } else {
             return List.of();
-        }
-    }
-
-    public Trainee addTrainer(String traineeUsername, Trainer trainer) {
-        Optional<Trainee> maybeTrainee = select(traineeUsername);
-        if (maybeTrainee.isPresent()) {
-            Trainee trainee = maybeTrainee.get();
-            trainee.addTrainer(trainer);
-            update(trainee);
-            return trainee;
-        } else {
-            return null;
         }
     }
 

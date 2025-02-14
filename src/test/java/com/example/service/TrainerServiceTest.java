@@ -3,7 +3,6 @@ package com.example.service;
 import com.example.springcrm.dao.HibernateUtil;
 import com.example.springcrm.dao.TrainerDao;
 
-import com.example.springcrm.model.Trainee;
 import com.example.springcrm.model.Trainer;
 import com.example.springcrm.service.TrainerService;
 import org.hibernate.Session;
@@ -11,8 +10,6 @@ import org.hibernate.Transaction;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -367,6 +364,82 @@ public class TrainerServiceTest {
         assertEquals(Optional.empty(),
                 trainerService
                         .deactivateAccount(trainer.getUsername()));
+    }
+
+    @Test
+    void changePassword_OK() {
+        Trainer trainer = new Trainer(
+                "Dmytro",
+                "Hunko",
+                "Dmytro.Hunko",
+                null,
+                true,
+                "Bodybuilding"
+        );
+
+        trainerService.create(trainer);
+
+        String oldPassword = trainer.getPassword();
+
+        Optional<Trainer> updatedTrainerOpt = trainerService.changePassword(
+                "Dmytro.Hunko",
+                oldPassword,
+                "newPassword");
+
+        assertTrue(updatedTrainerOpt.isPresent());
+
+        Trainer updatedTrainer = updatedTrainerOpt.get();
+
+        assertEquals("newPassword", updatedTrainer.getPassword());
+        assertEquals("Dmytro.Hunko", updatedTrainer.getUsername());
+
+        //Make sure change persists to DB.
+        Trainer selectedTrainer = trainerService.select(trainer.getUsername()).get();
+
+        assertEquals("newPassword", selectedTrainer.getPassword());
+        assertEquals("Dmytro.Hunko", selectedTrainer.getUsername());
+    }
+
+    @Test
+    void changePasswordToEmpty_NotOK() {
+        Trainer trainer = new Trainer(
+                "Dmytro",
+                "Hunko",
+                "Dmytro.Hunko",
+                null,
+                true,
+                "Bodybuilding"
+        );
+
+        trainerService.create(trainer);
+
+        String oldPassword = trainer.getPassword();
+
+        Optional<Trainer> updatedTraineeOpt = trainerService.changePassword(
+                "Dmytro.Hunko",
+                oldPassword,
+                "");
+
+        assertEquals(Optional.empty(), updatedTraineeOpt);
+
+        //Make sure password wasn't changed.
+        Trainer selectedTrainer = trainerService.select(trainer.getUsername()).get();
+
+        assertEquals(oldPassword, selectedTrainer.getPassword());
+        assertEquals("Dmytro.Hunko", selectedTrainer.getUsername());
+
+        updatedTraineeOpt = trainerService.changePassword(
+                "Dmytro.Hunko",
+                oldPassword,
+                null);
+
+        assertEquals(Optional.empty(), updatedTraineeOpt);
+
+        //Make sure password wasn't changed.
+        selectedTrainer = trainerService.select(trainer.getUsername()).get();
+
+        assertEquals(oldPassword, selectedTrainer.getPassword());
+        assertEquals("Dmytro.Hunko", selectedTrainer.getUsername());
     }
 
 }

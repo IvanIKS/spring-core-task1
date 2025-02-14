@@ -1,11 +1,9 @@
 package com.example.springcrm.service;
 
-import com.example.springcrm.dao.Dao;
 import com.example.springcrm.dao.UserDao;
 import com.example.springcrm.exception.UnauthorisedException;
-import com.example.springcrm.model.Trainer;
 import com.example.springcrm.model.User;
-import jdk.jshell.spi.ExecutionControl;
+
 
 import java.util.Optional;
 import java.util.Random;

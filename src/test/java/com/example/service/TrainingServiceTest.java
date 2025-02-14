@@ -18,9 +18,7 @@ import org.junit.jupiter.api.Test;
 
 
 import java.time.Duration;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -229,4 +227,6 @@ public class TrainingServiceTest {
         List<Training> trainings = trainingService.list();
         assertEquals(0, trainings.size());
     }
+
+
 }

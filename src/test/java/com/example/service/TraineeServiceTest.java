@@ -436,4 +436,82 @@ public class TraineeServiceTest {
                         .deactivateAccount(trainee.getUsername()));
     }
 
+    @Test
+    void changePassword_OK() {
+        Trainee trainee = new Trainee(
+                "Dmytro",
+                "Hunko",
+                "Dmytro.Hunko",
+                null,
+                true,
+                new Date(),
+                "Vulytsia Krivonosa, 12"
+        );
+
+        traineeService.create(trainee);
+
+        String oldPassword = trainee.getPassword();
+
+        Optional<Trainee> updatedTraineeOpt = traineeService.changePassword(
+                "Dmytro.Hunko",
+                oldPassword,
+                "newPassword");
+
+        assertTrue(updatedTraineeOpt.isPresent());
+
+        Trainee updatedTrainee = updatedTraineeOpt.get();
+
+        assertEquals("newPassword", updatedTrainee.getPassword());
+        assertEquals("Dmytro.Hunko", updatedTrainee.getUsername());
+
+        //Make sure change persists to DB.
+        Trainee selectedTrainee = traineeService.select(trainee.getUsername()).get();
+
+        assertEquals("newPassword", selectedTrainee.getPassword());
+        assertEquals("Dmytro.Hunko", selectedTrainee.getUsername());
+    }
+
+    @Test
+    void changePasswordToEmpty_NotOK() {
+        Trainee trainee = new Trainee(
+                "Dmytro",
+                "Hunko",
+                "Dmytro.Hunko",
+                null,
+                true,
+                new Date(),
+                "Vulytsia Krivonosa, 12"
+        );
+
+        traineeService.create(trainee);
+
+        String oldPassword = trainee.getPassword();
+
+        Optional<Trainee> updatedTraineeOpt = traineeService.changePassword(
+                "Dmytro.Hunko",
+                oldPassword,
+                "");
+
+        assertEquals(Optional.empty(), updatedTraineeOpt);
+
+        //Make sure password wasn't changed.
+        Trainee selectedTrainee = traineeService.select(trainee.getUsername()).get();
+
+        assertEquals(oldPassword, selectedTrainee.getPassword());
+        assertEquals("Dmytro.Hunko", selectedTrainee.getUsername());
+
+        updatedTraineeOpt = traineeService.changePassword(
+                "Dmytro.Hunko",
+                oldPassword,
+                null);
+
+        assertEquals(Optional.empty(), updatedTraineeOpt);
+
+        //Make sure password wasn't changed.
+        selectedTrainee = traineeService.select(trainee.getUsername()).get();
+
+        assertEquals(oldPassword, selectedTrainee.getPassword());
+        assertEquals("Dmytro.Hunko", selectedTrainee.getUsername());
+    }
+
 }

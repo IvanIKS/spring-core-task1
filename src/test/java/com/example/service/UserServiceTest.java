@@ -1,9 +1,5 @@
 package com.example.service;
 
-
-
-//Tests for functions defined in abstract UserService class.
-
 import com.example.springcrm.model.User;
 import com.example.springcrm.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +11,8 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+
+//Tests for functions defined in abstract UserService class.
 class UserServiceTest {
     UserService userService;
 

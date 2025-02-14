@@ -1,7 +1,5 @@
 package com.example.springcrm.dao;
 
-import com.example.springcrm.exception.DeletingNonexistentUserException;
-import com.example.springcrm.exception.OutdatedUsernameException;
 import com.example.springcrm.exception.UserAlreadyExistsException;
 import com.example.springcrm.model.*;
 import org.hibernate.PropertyValueException;

@@ -15,10 +15,15 @@ public class Trainer extends User implements Cloneable {
     @Column(nullable = false)
     private String specialization;
 
-    @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "trainer",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.EAGER,
+            orphanRemoval = true)
     private List<Training> trainings;
 
-    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @ManyToMany(cascade =
+            {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH},
+            fetch = FetchType.EAGER)
     @JoinTable(name = "trainees_trainers",
             joinColumns = @JoinColumn(name = "trainer_userId"),
             inverseJoinColumns = @JoinColumn(name = "trainee_userId")

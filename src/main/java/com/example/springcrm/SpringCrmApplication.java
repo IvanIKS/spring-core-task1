@@ -1,25 +1,15 @@
 package com.example.springcrm;
 
-import com.example.springcrm.model.Trainee;
-import com.example.springcrm.model.Trainer;
-
-import com.example.springcrm.model.Training;
-import com.example.springcrm.model.TrainingType;
 import com.example.springcrm.service.TraineeService;
 import com.example.springcrm.service.TrainerService;
 import com.example.springcrm.service.TrainingService;
-import com.example.springcrm.dao.HibernateUtil;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+
 
 
 public class SpringCrmApplication {

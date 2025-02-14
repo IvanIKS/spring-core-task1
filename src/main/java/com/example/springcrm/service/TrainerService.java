@@ -7,7 +7,6 @@ import com.example.springcrm.exception.UserAlreadyExistsException;
 import com.example.springcrm.model.Trainee;
 import com.example.springcrm.model.Trainer;
 import com.example.springcrm.model.Training;
-import com.example.springcrm.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,7 +134,7 @@ public class TrainerService extends UserService {
                 Trainer trainer = maybeTrainer.get();
                 if (authenticationService.authenticate(trainer, password)) {
                     trainer.setPassword(newPassword);
-                    update(trainer);
+                    trainerDao.update(trainer);
                 }
                 return Optional.of(trainer);
             } else {
@@ -143,8 +142,43 @@ public class TrainerService extends UserService {
             }
         } catch (UnauthorisedException e) {
             logger.error(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            logger.error("Failed to create a user, user had invalid values: " + e.getMessage());
+        }
+        return Optional.empty();
+
+    }
+
+    public List<Training> getTrainingsByCriteria(String username, Date from, Date to, String traineeUsername) {
+        Optional<Trainer> maybeTrainer = select(username);
+        if (maybeTrainer.isPresent()) {
+            List<Training> trainings = maybeTrainer.get().getTrainings();
+            return trainings.stream()
+                    .filter(tr -> tr.getTrainee().getUsername().equals(traineeUsername))
+                    .filter(tr ->
+                            tr.getTrainingDate().after(from)
+                                    && tr.getTrainingDate().before(to))
+                    .toList();
+        } else {
+            return List.of();
+        }
+    }
+
+    public Optional<Trainer> addTrainee(String trainerUsername, Trainee trainee) {
+        Optional<Trainer> maybeTrainer = select(trainerUsername);
+        if (maybeTrainer.isPresent()) {
+            Trainer trainer = maybeTrainer.get();
+            trainer.addTrainee(trainee);
+            trainee.addTrainer(trainer);
+            update(trainer);
+            return Optional.of(trainer);
+        } else {
             return Optional.empty();
         }
+    }
+
+    public List<Trainer> getUnassignedTrainersForTrainee(String traineeUsername) {
+        return trainerDao.getAllExcludingTrainee(traineeUsername);
     }
 
     private Trainer handleUsernameOverlap(Trainer trainer) {
@@ -164,51 +198,6 @@ public class TrainerService extends UserService {
 
         return trainer;
     }
-
-    public List<Training> getTrainingsByCriteria(String username, Date from, Date to, String traineeUsername) {
-        Optional<Trainer> maybeTrainer = select(username);
-        if (maybeTrainer.isPresent()) {
-            List<Training> trainings = maybeTrainer.get().getTrainings();
-            return trainings.stream()
-                    .filter(tr -> tr.getTrainee().getUsername().equals(traineeUsername))
-                    .filter(tr ->
-                            tr.getTrainingDate().after(from)
-                                    && tr.getTrainingDate().before(to))
-                    .toList();
-        } else {
-            return List.of();
-        }
-    }
-
-    public Trainer addTrainee(String trainerUsername, Trainee trainee) {
-        Optional<Trainer> maybeTrainer = select(trainerUsername);
-        if (maybeTrainer.isPresent()) {
-            Trainer trainer = maybeTrainer.get();
-            trainee.addTrainer(trainer);
-            update(trainer);
-            return trainer;
-        } else {
-            return null;
-        }
-    }
-
-    public List<Trainer> notAssignedTrainers(String traineeUsername) {
-        return trainerDao.getAllExcludingTrainee(traineeUsername);
-    }
-
-    /*
-    14. Get Trainee Trainings List by trainee username and criteria (from date, to date, trainer
-    name, training type).
-    15. Get Trainer Trainings List by trainer username and criteria (from date, to date, trainee
-    name).
-    16. Add training.
-    17. Get trainers list that not assigned on trainee by trainee's username.
-    18. Update Tranee's trainers list
-    19. Test.
-    *
-    *
-    *
-    * */
 
     private void updateWithNameCheck(Trainer trainer) {
         try {

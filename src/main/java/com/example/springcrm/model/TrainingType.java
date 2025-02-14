@@ -38,12 +38,4 @@ public class TrainingType {
     public String getTrainingTypeName() {
         return trainingTypeName;
     }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public void setTrainingTypeName(String trainingTypeName) {
-        this.trainingTypeName = trainingTypeName;
-    }
 }

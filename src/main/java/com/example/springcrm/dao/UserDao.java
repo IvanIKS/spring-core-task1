@@ -1,6 +1,5 @@
 package com.example.springcrm.dao;
 
-import com.example.springcrm.model.Trainee;
 import com.example.springcrm.model.User;
 
 import java.util.List;
@@ -15,7 +14,8 @@ public interface UserDao {
     default void validateUserForDatabase(User user) throws IllegalArgumentException {
         //Validating on server side without waiting for errors sent from database.
         if (user.getFirstName() == null || user.getLastName() == null
-                || user.getFirstName().isBlank() || user.getLastName().isBlank()) {
+                || user.getFirstName().isBlank() || user.getLastName().isBlank()
+                || user.getPassword() == null || user.getPassword().isBlank()) {
             throw new IllegalArgumentException("Invalid user: " + user.toString());
         }
     }

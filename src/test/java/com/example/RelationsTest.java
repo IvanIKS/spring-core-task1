@@ -17,14 +17,11 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.stereotype.Repository;
 
 import java.time.Duration;
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 /**
@@ -352,7 +349,7 @@ public class RelationsTest {
     }
 
     @Test
-    void nonExistingTrainee_NotOK() {
+    void saveTrainingWithNonExistingTrainee_NotOK() {
         TrainingType dancing = new TrainingType("Dancing");
 
         Trainee trainee = new Trainee(
@@ -403,6 +400,258 @@ public class RelationsTest {
         trainerService.create(trainer);
         trainingService.create(training);
         assertEquals(Optional.empty(), trainingService.select(training.getId()));
+    }
+
+    @Test
+    void trainerAddTrainee_OK() {
+        Trainer trainer = new Trainer(
+                "Volodymyr",
+                "Petrenko",
+                "Volodymyr.Petrenko",
+                "tajna",
+                true,
+                "Yoga"
+        );
+
+        Trainee trainee = new Trainee(
+                "Oksana",
+                "Kovalenko",
+                "Oksana.Kovalenko",
+                "parol123",
+                true,
+                new Date(),
+                "Vulytsia Shevchenka, 1"
+        );
+        traineeService.create(trainee);
+        trainerService.create(trainer);
+
+        trainerService.addTrainee(trainer.getUsername(), trainee);
+
+        Trainee selectedTrainee = traineeService.select(trainee.getUsername()).get();
+        Trainer selectedTrainer = trainerService.select(trainer.getUsername()).get();
+
+        assertTrue(selectedTrainer.getTrainees().contains(trainee));
+        assertTrue(selectedTrainee.getTrainers().contains(trainer));
+
+    }
+
+    @Test
+    void getUnassignedTrainersForTrainee_OK() {
+        Trainee trainee = new Trainee(
+                "Oksana",
+                "Kovalenko",
+                "oksana.kovalenko",
+                "parol123",
+                true,
+                new Date(),
+                "Vulytsia Shevchenka, 1"
+        );
+
+        Trainer trainer1 = new Trainer(
+                "Volodymyr",
+                "Petrenko",
+                "volodymyr.petrenko",
+                "tajna",
+                true,
+                "Yoga"
+        );
+
+        Trainer trainer2 = new Trainer(
+                "Natalia",
+                "Bondarenko",
+                "natalia.bondarenko",
+                "tajna",
+                true,
+                "Pilates"
+        );
+
+        Trainer trainer3 = new Trainer(
+                "Roman",
+                "Tkachenko",
+                "roman.tkachenko",
+                "tajna",
+                true,
+                "CrossFit"
+        );
+
+        traineeService.create(trainee);
+        trainerService.create(trainer1);
+        trainerService.create(trainer2);
+        trainerService.create(trainer3);
+
+        trainee.addTrainer(trainer1);
+        trainer1.addTrainee(trainee);
+
+        traineeService.update(trainee);
+        trainerService.update(trainer1);
+
+        List<Trainer> unassignedTrainers = trainerService.getUnassignedTrainersForTrainee(trainee.getUsername());
+
+        assertNotNull(unassignedTrainers);
+        assertEquals(2, unassignedTrainers.size());
+
+        assertTrue(unassignedTrainers.contains(trainer2));
+        assertTrue(unassignedTrainers.contains(trainer3));
+    }
+
+    @Test
+    void trainerServiceGetTrainingsByCriteria_OK() {
+        // Create two Training objects with different training dates.
+        // training1  inside our criteria, training2 outside.
+        Date trainingDate1 = new GregorianCalendar(2025, Calendar.JANUARY, 15).getTime();
+        Date trainingDate2 = new GregorianCalendar(2025, Calendar.MARCH, 10).getTime();
+        TrainingType trainingType = new TrainingType("Dancing");
+        trainingTypeDao.create(trainingType);
+
+        Trainee trainee = new Trainee(
+                "Iryna",
+                "Melnyk",
+                "iryna.melnyk",
+                "parol789",
+                true,
+                new Date(),
+                "Vulytsia Krivonosa, 12"
+        );
+
+        Trainer trainer = new Trainer(
+                "Natalia",
+                "Bedich",
+                "natalia.bondarenko",
+                "tajna",
+                true,
+                "Dancing"
+        );
+
+        traineeService.create(trainee);
+        trainerService.create(trainer);
+
+        Training training1 = new Training(
+                trainee,
+                trainer,
+                "Yoga",
+                trainingType,
+                trainingDate1,
+                Duration.ofHours(1)
+        );
+        Training training2 = new Training(
+                trainee,
+                trainer,
+                "Yoga",
+                trainingType,
+                trainingDate2,
+                Duration.ofHours(1)
+        );
+
+        trainingService.create(training1);
+        trainingService.create(training2);
+
+        // Look for trainings conducted by "volodymyr.petrenko" between Jan 1, 2025 and Feb 1, 2025
+        // for the trainee "oksana.kovalenko".
+        Date from = new GregorianCalendar(2025, Calendar.JANUARY, 1).getTime();
+        Date to = new GregorianCalendar(2025, Calendar.FEBRUARY, 1).getTime();
+
+        // Execute the query method:
+        List<Training> trainings = trainerService.getTrainingsByCriteria(
+                trainer.getUsername(),
+                from,
+                to,
+                trainee.getUsername()
+        );
+
+        // Validate the results:
+        // Only training1 should be returned because training2 is outside the date range.
+        assertNotNull(trainings);
+        assertEquals(1, trainings.size());
+        assertEquals(training1.getId(), trainings.get(0).getId());
+    }
+
+    @Test
+    void traineeServiceGetTrainingsByCriteria_OK() {
+        TrainingType cardio = new TrainingType("Cardio");
+        TrainingType strength = new TrainingType("Strength");
+        trainingTypeDao.create(cardio);
+        trainingTypeDao.create(strength);
+
+        // Create a Trainee (Dmytro Hunko)
+        Trainee trainee = new Trainee(
+                "Dmytro",
+                "Hunko",
+                "Dmytro.Hunko",
+                "parol789",
+                true,
+                new Date(),
+                "Vulytsia Krivonosa, 12"
+        );
+
+        // Create a Trainer (Olexandr Tyhomir)
+        Trainer trainer = new Trainer(
+                "Olexandr",
+                "Tyhomir",
+                "Olexandr.Tyhomir",
+                "tajna",
+                true,
+                "Bodybuilding"
+        );
+
+        // Persist trainee and trainer
+        traineeService.create(trainee);
+        trainerService.create(trainer);
+
+        // Create two Training objects:
+        // training1: date within criteria and type "Cardio"
+        Date trainingDate1 = new GregorianCalendar(2025, Calendar.JANUARY, 15).getTime();
+        Training training1 = new Training(
+                trainee,
+                trainer,
+                "Cool training",
+                cardio,
+                trainingDate1,
+                Duration.ofHours(1)
+        );
+
+        // training2: date outside criteria and type "Strength"
+        Date trainingDate2 = new GregorianCalendar(2025, Calendar.MARCH, 10).getTime();
+        Training training2 = new Training(
+                trainee,
+                trainer,
+                "Cool training",
+                strength,
+                trainingDate2,
+                Duration.ofHours(1)
+        );
+        // training2: date inside criteria and type "Strength"
+        Date trainingDate3 = new GregorianCalendar(2025, Calendar.JANUARY, 10).getTime();
+        Training training3 = new Training(
+                trainee,
+                trainer,
+                "Cool training",
+                strength,
+                trainingDate3,
+                Duration.ofHours(1)
+        );
+        // Persist both trainings
+        trainingService.create(training1);
+        trainingService.create(training2);
+
+        // Date range: January 1, 2025 to February 1, 2025,
+        // Trainer username: "Olexandr.Tyhomir",
+        // Training type: Cardio
+        Date from = new GregorianCalendar(2025, Calendar.JANUARY, 1).getTime();
+        Date to = new GregorianCalendar(2025, Calendar.FEBRUARY, 1).getTime();
+
+        // Execute the method under test
+        List<Training> results = traineeService.getTrainingsByCriteria(
+                trainee.getUsername(),
+                from,
+                to,
+                trainer.getUsername(),
+                cardio
+        );
+
+        // Validate the results: only training1 should be returned.
+        assertNotNull(results);
+        assertEquals(1, results.size());
+        assertEquals(training1.getId(), results.get(0).getId());
     }
 
 }

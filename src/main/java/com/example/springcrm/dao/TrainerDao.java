@@ -227,8 +227,7 @@ public class TrainerDao implements Dao<Trainer>, UserDao {
                         trainer.getTrainees()
                                 .stream()
                                 .noneMatch(trainee ->
-                                        trainee.getUsername().equals(traineeUsername))
-                )
+                                        trainee.getUsername().equals(traineeUsername)))
                 .toList();
     }
 }
